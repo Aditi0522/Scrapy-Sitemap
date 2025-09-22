@@ -12,7 +12,7 @@ EXCLUDE_KEYWORDS = ["blog", ".jpg", ".jpeg", ".png", ".webp", "event", "events"]
 class JobSitemapSpider(scrapy.Spider):
     name = "jobsitemap"
 
-    def __init__(self, csv_file="cleaned_file.csv", output_file="job_links4.txt", *args, **kwargs):
+    def __init__(self, csv_file="master_sheet_cleaned_data.csv", output_file="master_sheet_sitemap.txt", *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.output_file = output_file
 
@@ -28,7 +28,7 @@ class JobSitemapSpider(scrapy.Spider):
         self.visited_sitemaps = set()
         self.company_data = defaultdict(lambda: {
             "Startup": "",
-            "Company URL": "",
+            "Website": "",
             "Robots.txt Link": "",
             "Sitemap Links": set(),
             "Job Links": set()
@@ -42,7 +42,7 @@ class JobSitemapSpider(scrapy.Spider):
 
             # Initialize company row
             self.company_data[domain]["Startup"] = company["Startup"]
-            self.company_data[domain]["Company URL"] = domain
+            self.company_data[domain]["Website"] = domain
             self.company_data[domain]["Robots.txt Link"] = robots_url
 
             yield scrapy.Request(
@@ -115,15 +115,15 @@ class JobSitemapSpider(scrapy.Spider):
     def closed(self, reason):
         """Export grouped results at the end"""
         import csv
-        with open("job_links4.csv", "w", newline="", encoding="utf-8") as csvfile:
-            fieldnames = ["Startup", "Company URL", "Robots.txt Link", "Sitemap Links", "Job Links"]
+        with open("original_data_sitemap.csv", "w", newline="", encoding="utf-8") as csvfile:
+            fieldnames = ["Startup", "Website", "Robots.txt Link", "Sitemap Links", "Job Links"]
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
             writer.writeheader()
 
             for company in self.company_data.values():
                 writer.writerow({
                     "Startup": company["Startup"],
-                    "Company URL": company["Company URL"],
+                    "Website": company["Website"],
                     # keep blank if missing
                     "Robots.txt Link": company["Robots.txt Link"] or "",
                     "Sitemap Links": "; ".join(sorted(company["Sitemap Links"])) if company["Sitemap Links"] else "",

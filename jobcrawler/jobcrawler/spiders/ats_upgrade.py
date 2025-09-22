@@ -28,7 +28,7 @@ ATS_PLATFORMS = [
 class ATSUpgradeSpider(scrapy.Spider):
     name = "ats_upgrade"
 
-    def __init__(self, csv_file="job_links4.csv", output_file="job_links4_upgraded.csv", *args, **kwargs):
+    def __init__(self, csv_file="scrapling_raw_results_2_copy.csv", output_file="scrapling_raw_data_2_copy_upgraded.csv", *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.csv_file = csv_file
         self.output_file = output_file
@@ -42,7 +42,7 @@ class ATSUpgradeSpider(scrapy.Spider):
 
     def start_requests(self):
         for idx, row in self.df.iterrows():
-            job_links = row.get("Job Links")
+            job_links = row.get("job_url")
             if pd.isna(job_links) or not job_links.strip():
                 continue
 
@@ -69,14 +69,14 @@ class ATSUpgradeSpider(scrapy.Spider):
 
         # Update the result row
         row_idx = self.link_map[original_link]
-        current_links = [l.strip() for l in str(self.results.at[row_idx, "Job Links"]).split(";") if l.strip()]
+        current_links = [l.strip() for l in str(self.results.at[row_idx, "job_url"]).split(";") if l.strip()]
         upgraded_links = []
         for l in current_links:
             if l == original_link:
                 upgraded_links.append(ats_link if ats_link else l)
             else:
                 upgraded_links.append(l)
-        self.results.at[row_idx, "Job Links"] = "; ".join(upgraded_links)
+        self.results.at[row_idx, "job_url"] = "; ".join(upgraded_links)
 
     def closed(self, reason):
         self.results.to_csv(self.output_file, index=False, encoding="utf-8")
